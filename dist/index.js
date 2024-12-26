@@ -424,6 +424,7 @@ function publishMessage(pr, message) {
     return __awaiter(this, void 0, void 0, function* () {
         const body = TITLE.concat(message);
         core.summary.addRaw(body).write();
+        core.info('Listing comments');
         let comments;
         try {
             comments = yield client_1.octokit.rest.issues.listComments(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr }));
@@ -436,6 +437,7 @@ function publishMessage(pr, message) {
             return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.startsWith(TITLE);
         });
         if (exist) {
+            core.info('Updating new comment');
             try {
                 yield client_1.octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, comment_id: exist.id, body }));
             }
@@ -444,6 +446,7 @@ function publishMessage(pr, message) {
             }
         }
         else {
+            core.info('Creating new comment');
             try {
                 yield client_1.octokit.rest.issues.createComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, body }));
             }

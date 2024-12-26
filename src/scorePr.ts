@@ -11,6 +11,7 @@ export async function publishMessage(pr: number, message: string): Promise<void>
   const body = TITLE.concat(message)
   core.summary.addRaw(body).write()
 
+  core.info('Listing comments')
   let comments
   try {
     comments = await octokit.rest.issues.listComments({
@@ -26,6 +27,7 @@ export async function publishMessage(pr: number, message: string): Promise<void>
   })
 
   if (exist) {
+    core.info('Updating new comment')
     try {
       await octokit.rest.issues.updateComment({
         ...context.repo,
@@ -37,6 +39,7 @@ export async function publishMessage(pr: number, message: string): Promise<void>
       core.error(`Error updating comment: ${error}`)
     }
   } else {
+    core.info('Creating new comment')
     try {
       await octokit.rest.issues.createComment({
         ...context.repo,

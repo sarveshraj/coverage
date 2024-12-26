@@ -20,7 +20,7 @@ export async function publishMessage(pr: number, message: string): Promise<void>
   } catch (error) {
     core.error(`Error listing comments: ${error}`)
   }
-  
+
   const exist = comments?.data.find(comment => {
     return comment.body?.startsWith(TITLE)
   })

@@ -419,21 +419,37 @@ const core = __importStar(__nccwpck_require__(2186));
 const format_1 = __nccwpck_require__(6610);
 const github_1 = __nccwpck_require__(5438);
 const client_1 = __nccwpck_require__(1565);
-const TITLE = `# ☂️ Python Coverage`;
+const TITLE = `# ☂️ Coverage Report`;
 function publishMessage(pr, message) {
     return __awaiter(this, void 0, void 0, function* () {
         const body = TITLE.concat(message);
         core.summary.addRaw(body).write();
-        const comments = yield client_1.octokit.rest.issues.listComments(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr }));
-        const exist = comments.data.find(commnet => {
+        let comments;
+        try {
+            comments = yield client_1.octokit.rest.issues.listComments(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr }));
+        }
+        catch (error) {
+            core.error(`Error listing comments: ${error}`);
+        }
+        const exist = comments === null || comments === void 0 ? void 0 : comments.data.find(comment => {
             var _a;
-            return (_a = commnet.body) === null || _a === void 0 ? void 0 : _a.startsWith(TITLE);
+            return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.startsWith(TITLE);
         });
         if (exist) {
-            yield client_1.octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, comment_id: exist.id, body }));
+            try {
+                yield client_1.octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, comment_id: exist.id, body }));
+            }
+            catch (error) {
+                core.error(`Error updating comment: ${error}`);
+            }
         }
         else {
-            yield client_1.octokit.rest.issues.createComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, body }));
+            try {
+                yield client_1.octokit.rest.issues.createComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, body }));
+            }
+            catch (error) {
+                core.error(`Error creating comment: ${error}`);
+            }
         }
     });
 }

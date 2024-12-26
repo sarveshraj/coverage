@@ -11,27 +11,41 @@ export async function publishMessage(pr: number, message: string): Promise<void>
   const body = TITLE.concat(message)
   core.summary.addRaw(body).write()
 
-  const comments = await octokit.rest.issues.listComments({
-    ...context.repo,
-    issue_number: pr
-  })
-  const exist = comments.data.find(commnet => {
-    return commnet.body?.startsWith(TITLE)
+  let comments
+  try {
+    comments = await octokit.rest.issues.listComments({
+      ...context.repo,
+      issue_number: pr
+    })
+  } catch (error) {
+    core.error(`Error listing comments: ${error}`)
+  }
+  
+  const exist = comments?.data.find(comment => {
+    return comment.body?.startsWith(TITLE)
   })
 
   if (exist) {
-    await octokit.rest.issues.updateComment({
-      ...context.repo,
-      issue_number: pr,
-      comment_id: exist.id,
-      body
-    })
+    try {
+      await octokit.rest.issues.updateComment({
+        ...context.repo,
+        issue_number: pr,
+        comment_id: exist.id,
+        body
+      })
+    } catch (error) {
+      core.error(`Error updating comment: ${error}`)
+    }
   } else {
-    await octokit.rest.issues.createComment({
-      ...context.repo,
-      issue_number: pr,
-      body
-    })
+    try {
+      await octokit.rest.issues.createComment({
+        ...context.repo,
+        issue_number: pr,
+        body
+      })
+    } catch (error) {
+      core.error(`Error creating comment: ${error}`)
+    }
   }
 }
 

@@ -14,9 +14,13 @@ export async function publishMessage(pr: number, message: string): Promise<void>
   core.info('Listing comments')
   let comments
   try {
-    comments = await octokit.rest.issues.listComments({
-      ...context.repo,
-      issue_number: pr
+    comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      issue_number: pr,
+      headers: {
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
     })
   } catch (error) {
     core.error(`Error listing comments: ${error}`)

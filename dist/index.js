@@ -427,7 +427,14 @@ function publishMessage(pr, message) {
         core.info('Listing comments');
         let comments;
         try {
-            comments = yield client_1.octokit.rest.issues.listComments(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr }));
+            comments = yield client_1.octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+                owner: github_1.context.repo.owner,
+                repo: github_1.context.repo.repo,
+                issue_number: pr,
+                headers: {
+                    'X-GitHub-Api-Version': '2022-11-28'
+                }
+            });
         }
         catch (error) {
             core.error(`Error listing comments: ${error}`);

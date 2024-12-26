@@ -3,58 +3,8 @@ import * as core from '@actions/core'
 import {FilesCoverage} from './coverage'
 import {formatAverageTable, formatFilesTable, toPercent} from './format'
 import {context} from '@actions/github'
-import {octokit} from './client'
 
 const TITLE = `# ☂️ Coverage Report`
-
-export async function publishMessage(pr: number, message: string): Promise<void> {
-  const body = TITLE.concat(message)
-  core.summary.addRaw(body).write()
-
-  core.info('Listing comments')
-  let comments
-  try {
-    comments = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: pr,
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    })
-  } catch (error) {
-    core.error(`Error listing comments: ${error}`)
-  }
-
-  const exist = comments?.data.find(comment => {
-    return comment.body?.startsWith(TITLE)
-  })
-
-  if (exist) {
-    core.info('Updating new comment')
-    try {
-      await octokit.rest.issues.updateComment({
-        ...context.repo,
-        issue_number: pr,
-        comment_id: exist.id,
-        body
-      })
-    } catch (error) {
-      core.error(`Error updating comment: ${error}`)
-    }
-  } else {
-    core.info('Creating new comment')
-    try {
-      await octokit.rest.issues.createComment({
-        ...context.repo,
-        issue_number: pr,
-        body
-      })
-    } catch (error) {
-      core.error(`Error creating comment: ${error}`)
-    }
-  }
-}
 
 export function scorePr(filesCover: FilesCoverage): boolean {
   let message = ''
@@ -90,7 +40,7 @@ export function scorePr(filesCover: FilesCoverage): boolean {
   const action = '[action](https://github.com/marketplace/actions/python-coverage)'
   message = message.concat(`\n\n\n> **updated for commit: \`${sha}\` by ${action}🐍**`)
   message = `\n> current status: ${passOverall ? '✅' : '❌'}`.concat(message)
-  publishMessage(context.issue.number, message)
+  core.setOutput('report', TITLE.concat(message))
   core.endGroup()
 
   return passOverall

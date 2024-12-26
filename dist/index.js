@@ -404,66 +404,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.scorePr = exports.publishMessage = void 0;
+exports.scorePr = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const format_1 = __nccwpck_require__(6610);
 const github_1 = __nccwpck_require__(5438);
-const client_1 = __nccwpck_require__(1565);
 const TITLE = `# ☂️ Coverage Report`;
-function publishMessage(pr, message) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const body = TITLE.concat(message);
-        core.summary.addRaw(body).write();
-        core.info('Listing comments');
-        let comments;
-        try {
-            comments = yield client_1.octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-                owner: github_1.context.repo.owner,
-                repo: github_1.context.repo.repo,
-                issue_number: pr,
-                headers: {
-                    'X-GitHub-Api-Version': '2022-11-28'
-                }
-            });
-        }
-        catch (error) {
-            core.error(`Error listing comments: ${error}`);
-        }
-        const exist = comments === null || comments === void 0 ? void 0 : comments.data.find(comment => {
-            var _a;
-            return (_a = comment.body) === null || _a === void 0 ? void 0 : _a.startsWith(TITLE);
-        });
-        if (exist) {
-            core.info('Updating new comment');
-            try {
-                yield client_1.octokit.rest.issues.updateComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, comment_id: exist.id, body }));
-            }
-            catch (error) {
-                core.error(`Error updating comment: ${error}`);
-            }
-        }
-        else {
-            core.info('Creating new comment');
-            try {
-                yield client_1.octokit.rest.issues.createComment(Object.assign(Object.assign({}, github_1.context.repo), { issue_number: pr, body }));
-            }
-            catch (error) {
-                core.error(`Error creating comment: ${error}`);
-            }
-        }
-    });
-}
-exports.publishMessage = publishMessage;
 function scorePr(filesCover) {
     var _a, _b, _c;
     let message = '';
@@ -498,7 +444,7 @@ function scorePr(filesCover) {
     const action = '[action](https://github.com/marketplace/actions/python-coverage)';
     message = message.concat(`\n\n\n> **updated for commit: \`${sha}\` by ${action}🐍**`);
     message = `\n> current status: ${passOverall ? '✅' : '❌'}`.concat(message);
-    publishMessage(github_1.context.issue.number, message);
+    core.setOutput('report', TITLE.concat(message));
     core.endGroup();
     return passOverall;
 }
